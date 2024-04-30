@@ -2,14 +2,6 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# replicaCount: 1
-
-# image:
-#   repository: yoonjeong/order
-#   pullPolicy: IfNotPresent
-#   # Overrides the image tag whose default is the chart appVersion.
-#   tag: "1.0"
-
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -37,10 +29,6 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
-
-service:
-  type: ClusterIP
-  port: 80
 
 ingress:
   enabled: false
@@ -85,6 +73,14 @@ affinity: {}
 
 
 #############
+myPod:
+  name: "auth-module"
+  isAuth: true
+
+# 서비스를 정의합니다.
+service:
+  type: LoadBalancer
+  port: 8079
 
 # replicaCount 정의합니다.
 replicaCount: 1
@@ -92,17 +88,18 @@ replicaCount: 1
 # 비즈니스 어플리케이션 value를 정의합니다.
 application:
   name: "auth"
+  serverPort: 8080
   springProfile: "dev"
   image:
     repository: egoomoy/auth-module
     pullPolicy: IfNotPresent
     tag: "latest"
   configMap:
-    name: app-config-map
+    name: auth-app-config-map
     data:
       "DB-SOURCE": "jdbc:mariadb://mariadb:3306/es?serverTimezone=Asia/Seoul&autoReconnect=true&validationQuery=select 1"
   secretKey:
-    name: db-secret-key
+    name: auth-db-secret-key
     data: 
       "DB-USERNAME": cm9vdA==
       "DB-PASSWORD": ZWR1ZGF0YWJhc2UxMjM0
@@ -111,17 +108,19 @@ application:
 
 # 사이드카 프록시 value를 정의합니다.
 proxy:
-  enabled: false
+  enabled: true
   name: "sidecar"  
+  serverPort: 8070
   springProfile: "dev"
   image:
     repository: egoomoy/sidecar-module
     pullPolicy: IfNotPresent
     tag: "latest"
   configMap: 
-    name: proxy-config-map
+    name: auth-proxy-config-map
     data:
       "PROXY.TARGET.HOST": "127.0.0.1"
       "PROXY.TARGET.PORT": "8080"
       "PROXY.TARGET.SCHEME": "http"
       "PROXY.RESPONSE.HEADERS.REMOVE": "x-frame-options" 
+      "AUTH-MODULE.URL" : "http://auth-svc.default.svc.cluster.local:80"

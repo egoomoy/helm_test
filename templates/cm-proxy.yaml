@@ -1,6 +1,6 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: proxy-config-map
+  name: {{ .Values.proxy.configMap.name }}
 data:
   {{- toYaml .Values.proxy.configMap.data | nindent 2 }}

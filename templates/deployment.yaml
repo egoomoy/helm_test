@@ -33,18 +33,20 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.application.image.repository }}:{{ .Values.application.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.application.image.pullPolicy }}
-          env:
-          - name: SPRING_PROFILES_ACTIVE
-            value: {{ .Values.application.springProfile }}
-          envFrom:
-          - configMapRef:
-              name: {{ .Values.application.configMap.name }}
-          - secretRef:
-              name: {{ .Values.application.secretKey.name }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: {{ .Values.application.serverPort }}
               protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.application.springProfile }}
+            - name: SPRING_SERVER_PORT
+              value: {{ .Values.application.serverPort | quote }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.application.configMap.name }}
+            - secretRef:
+                name: {{ .Values.application.secretKey.name }}
           # livenessProbe:
           #   httpGet:
           #     path: /
@@ -61,11 +63,13 @@ spec:
           imagePullPolicy: {{ .Values.proxy.image.pullPolicy }}
           ports:
             - name: proxy
-              containerPort: {{ .Values.proxy.port }}
+              containerPort: {{ .Values.proxy.serverPort }}
               protocol: TCP
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.proxy.springProfile }}
+            - name: SPRING_SERVER_PORT
+              value: {{ .Values.proxy.serverPort | quote }}
           envFrom:
             - configMapRef:
                 name: {{ .Values.proxy.configMap.name }}

@@ -7,9 +7,16 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
+    {{- if .Values.proxy.enabled }}
+    - port: {{ .Values.service.port }}
+      targetPort: proxy
+      protocol: TCP
+      name: proxy
+    {{- else }}
     - port: {{ .Values.service.port }}
       targetPort: http
       protocol: TCP
       name: http
+    {{- end }}
   selector:
     {{- include "mychart.selectorLabels" . | nindent 4 }}
