@@ -47,14 +47,7 @@ spec:
                 name: {{ .Values.application.configMap.name }}
             - secretRef:
                 name: {{ .Values.application.secretKey.name }}
-          # livenessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
-          # readinessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
+
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
         {{- if .Values.proxy.enabled }}
@@ -73,6 +66,22 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ .Values.proxy.configMap.name }}
+          {{- if .Values.proxy.actuator.livenessPath }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.proxy.actuator.livenessPath }}
+              port: proxy
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          {{- end }}
+          {{- if .Values.proxy.actuator.readinessPath }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.proxy.actuator.readinessPath }}
+              port: proxy
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          {{- end }}
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

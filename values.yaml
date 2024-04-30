@@ -71,18 +71,17 @@ tolerations: []
 
 affinity: {}
 
-
 #############
 myPod:
   name: "auth-module"
   isAuth: true
 
-# 서비스를 정의합니다.
+# 서비스 타입을 정의합니다.
 service:
   type: LoadBalancer
-  port: 8079
+  port: 8082
 
-# replicaCount 정의합니다.
+# replica 수를 정의합니다.
 replicaCount: 1
 
 # 비즈니스 어플리케이션 value를 정의합니다.
@@ -107,6 +106,7 @@ application:
       # echo -n 'root' | base64
 
 # 사이드카 프록시 value를 정의합니다.
+# actuator 는 sidecar를 통해 메인어플리케이션으로 호출되어 회신된다.
 proxy:
   enabled: true
   name: "sidecar"  
@@ -123,4 +123,7 @@ proxy:
       "PROXY.TARGET.PORT": "8080"
       "PROXY.TARGET.SCHEME": "http"
       "PROXY.RESPONSE.HEADERS.REMOVE": "x-frame-options" 
-      "AUTH-MODULE.URL" : "http://auth-svc.default.svc.cluster.local:80"
+      "AUTH-MODULE.URL" : "http://auth-svc.default.svc.cluster.local:8080"
+  actuator:
+    livenessPath: /auth-module/actuator/health/liveness
+    readinessPath: /auth-module/actuator/health/readiness 
