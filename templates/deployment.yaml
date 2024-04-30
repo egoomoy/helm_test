@@ -66,21 +66,19 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ .Values.proxy.configMap.name }}
-          {{- if .Values.proxy.actuator.livenessPath }}
+          {{- if .Values.proxy.actuator.enabled}}
           livenessProbe:
             httpGet:
-              path: {{ .Values.proxy.actuator.livenessPath }}
+              path: {{ .Values.proxy.actuator.liveness.path }}
               port: proxy
-            initialDelaySeconds: 20
-            periodSeconds: 20
-          {{- end }}
-          {{- if .Values.proxy.actuator.readinessPath }}
+            initialDelaySeconds: {{ .Values.proxy.actuator.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.proxy.actuator.liveness.periodSeconds }}
           readinessProbe:
             httpGet:
-              path: {{ .Values.proxy.actuator.readinessPath }}
+              path: {{ .Values.proxy.actuator.readiness.path }}
               port: proxy
-            initialDelaySeconds: 10
-            periodSeconds: 20
+            initialDelaySeconds: {{ .Values.proxy.actuator.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.proxy.actuator.readiness.periodSeconds }}
           {{- end }}
         {{- end }}
       {{- with .Values.nodeSelector }}

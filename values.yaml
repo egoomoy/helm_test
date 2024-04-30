@@ -79,12 +79,12 @@ myPod:
 # 서비스 타입을 정의합니다.
 service:
   type: LoadBalancer
-  port: 8082
+  port: 8089
 
 # replica 수를 정의합니다.
 replicaCount: 1
 
-# 비즈니스 어플리케이션 value를 정의합니다.
+# 메인 어플리케이션 value를 정의합니다.
 application:
   name: "auth"
   serverPort: 8080
@@ -106,7 +106,7 @@ application:
       # echo -n 'root' | base64
 
 # 사이드카 프록시 value를 정의합니다.
-# actuator 는 sidecar를 통해 메인어플리케이션으로 호출되어 회신된다.
+# actuator 는 sidecar를 통해 메인 어플리케이션으로 호출되어 회신된다.
 proxy:
   enabled: true
   name: "sidecar"  
@@ -119,11 +119,19 @@ proxy:
   configMap: 
     name: auth-proxy-config-map
     data:
+      "PROXY.TARGET.NAME": "auth-module"
+      "PROXY.TARGET.SCHEME": "http"
       "PROXY.TARGET.HOST": "127.0.0.1"
       "PROXY.TARGET.PORT": "8080"
-      "PROXY.TARGET.SCHEME": "http"
-      "PROXY.RESPONSE.HEADERS.REMOVE": "x-frame-options" 
+      "PROXY.RESPONSE-HEADERS-REMOVE": "x-frame-options" 
       "AUTH-MODULE.URL" : "http://auth-svc.default.svc.cluster.local:8080"
   actuator:
-    livenessPath: /auth-module/actuator/health/liveness
-    readinessPath: /auth-module/actuator/health/readiness 
+    enabled: true
+    liveness:
+      path: /auth-module/actuator/health/liveness
+      initialDelaySeconds: 20
+      periodSeconds: 20
+    readiness:
+      path: /auth-module/actuator/health/readiness 
+      initialDelaySeconds: 10
+      periodSeconds: 20
